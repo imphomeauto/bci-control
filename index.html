@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+    <title>Socket.IO</title>
+
+    <link href="bootstrapfiles/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="chartjsfiles/Chart.min.css" rel="stylesheet" />
+
+</head>
+<body>
+    <h2 class="text-center">IHA - BCI Readings</h2>
+    <h3 class="text-center"><small>6201 Mohammed Tantawy, 6678 Davide Bragagnolo</small></h3>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-6">
+                <div><canvas id="graph"></canvas></div>
+            </div>
+            <div class="col-6">
+                <div><canvas id="radar"></canvas></div>
+            </div>
+        </div>            
+    </div>
+
+    <script src="socketiofiles/socket.io.js"></script>
+    <script src="chartjsfiles/Chart.min.js"></script>
+    <script>
+    var graphConfig = {
+        // The type of chart we want to create
+        type: 'line', // also try bar or other graph types
+
+        // The data for our dataset
+        data: {
+            labels: ["", "", "", "", "", "", "", "", "", ""],
+            // Information about the dataset
+            datasets: [{
+                label: "Attention",
+                backgroundColor: 'transparent',
+                borderColor: 'red',
+                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            },
+            {
+                label: "Meditation",
+                backgroundColor: 'transparent',
+                borderColor: 'green',
+                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            }]
+        },
+
+        // Configuration options
+        options: {
+            layout: {
+                padding: 0,
+            },
+            legend: {
+                display: true,
+            },
+            title: {
+                display: true,
+                text: 'Attention and Meditations levels'
+            },
+            scales: {
+                yAxes: [{
+                    scaleLabel: {
+                        display: false
+                    }
+                }],
+                xAxes: [{
+                    scaleLabel: {
+                        display: false
+                    }
+                }]
+            }
+        }
+    };    
+
+    var radarConfig = {
+        // The type of chart we want to create
+        type: 'radar', // also try bar or other graph types
+
+        // The data for our dataset
+        data: {
+            labels: ["delta", "theta", "lowAlpha", "highAlpha", "lowBeta", "highBeta", "lowGamma", "highGamma"],
+            // Information about the dataset
+            datasets: [{
+                label: "Instant Read",
+                borderColor: 'royalblue',
+                data: [26.4, 39.8, 66.8, 66.4, 40.6, 55.2, 77.4, 69.8],
+            }]
+        },
+        // Configuration options
+        options: {
+            layout: {
+                padding: 0,
+            },
+            legend: {
+                display: false,
+            },
+            title: {
+                display: true,
+                text: 'Brain Waves Readings'
+            }
+        }
+    };
+
+    function updateRadar(delta, theta, lowAlpha, highAlpha, lowBeta, highBeta, lowGamma, highGamma){
+        radarConfig.data.datasets[0].data[0] = Math.round(delta);
+        radarConfig.data.datasets[0].data[1] = Math.round(theta);
+        radarConfig.data.datasets[0].data[2] = Math.round(lowAlpha);
+        radarConfig.data.datasets[0].data[3] = Math.round(highAlpha);
+        radarConfig.data.datasets[0].data[4] = Math.round(lowBeta);
+        radarConfig.data.datasets[0].data[5] = Math.round(highBeta);
+        radarConfig.data.datasets[0].data[6] = Math.round(lowGamma);
+        radarConfig.data.datasets[0].data[7] = Math.round(highGamma);
+        window.radarChart.update();
+    }
+
+    function updateAttention(att){
+        graphConfig.data.datasets[0].data.shift();
+        graphConfig.data.datasets[0].data.push(att);
+        window.graphChart.update();
+    }
+
+    function updateMeditation(med){
+        graphConfig.data.datasets[1].data.shift();
+        graphConfig.data.datasets[1].data.push(med);
+        window.graphChart.update();
+    }
+
+    document.addEventListener("DOMContentLoaded", function(){
+
+        var graphCanvas = document.getElementById('graph').getContext('2d');
+		window.graphChart = new Chart(graphCanvas, graphConfig);
+
+        var radarCanvas = document.getElementById('radar').getContext('2d');
+		window.radarChart = new Chart(radarCanvas, radarConfig);
+
+        var socket = io();
+
+        socket.on('eeg', function(msg){
+            console.log('eeg', msg);
+            updateRadar(msg.delta, msg.theta, msg.loAlpha, msg.hiAlpha, msg.loBeta, msg.hiBeta, msg.loGamma, msg.midGamma);
+        });
+        socket.on('attention', function(msg){
+            console.log('attention', msg);
+            updateAttention(msg);
+        });
+        socket.on('meditation', function(msg){
+            console.log('meditation', msg);
+            updateMeditation(msg);
+
+            
+        });
+        socket.on('blink', function(msg){
+            console.log('blink', msg);
+        });
+
+    });
+    </script>
+    
+  </body>
+</html>
