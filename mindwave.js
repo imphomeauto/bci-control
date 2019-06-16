@@ -11,7 +11,7 @@ Mindwave.prototype.__proto__ = EventEmitter.prototype
 
 Mindwave.prototype.connect = function (port, baud) {
   if (!baud) {
-    baud = 9600
+    baud = 57600
   }
   var self = this
   if (baud !== 9600 && baud !== 57600) {

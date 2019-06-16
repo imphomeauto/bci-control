@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>Socket.IO</title>
+    <title>IHA BCI Mind Control</title>
 
     <link href="bootstrapfiles/css/bootstrap.min.css" rel="stylesheet" />
     <link href="chartjsfiles/Chart.min.css" rel="stylesheet" />
@@ -10,6 +10,25 @@
 <body>
     <h2 class="text-center">IHA - BCI Readings</h2>
     <h3 class="text-center"><small>6201 Mohammed Tantawy, 6678 Davide Bragagnolo</small></h3>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div id="alert"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <h5>Signal Strength <span id="signal"></span></h5>
+                <h5>Wave Value <span id="wave"></span></h5>
+            </div>
+            <div class="col-6">
+                <h6>Att Counter <span id="countatt"></span></h6>
+                <h6>Med Counter <span id="countmed"></span></h6>
+                <h6>Blink Count <span id="countblk"></span></h6>
+            </div>
+        </div>          
+    </div>
 
     <div class="container-fluid">
         <div class="row">
@@ -148,11 +167,28 @@
         socket.on('meditation', function(msg){
             console.log('meditation', msg);
             updateMeditation(msg);
-
-            
         });
-        socket.on('blink', function(msg){
-            console.log('blink', msg);
+        socket.on('wave', function(msg){
+            document.getElementById('wave').innerHTML = msg
+        });
+        socket.on('signal', function(msg){
+            document.getElementById('signal').innerHTML = msg
+        });
+        socket.on('counter', function(msg){
+            document.getElementById('countatt').innerHTML = msg.att;
+            document.getElementById('countmed').innerHTML = msg.med;
+            document.getElementById('countblk').innerHTML = msg.blk;
+        });
+        socket.on('goto', function(msg){
+            if(msg == 'alarm'){
+                document.getElementById('alert').innerHTML = '';
+                document.getElementById('alert').innerHTML = '<div class="alert alert-danger" role="alert">Alarm signal!</div>';
+            }else if(msg == 'finish'){
+                document.getElementById('alert').innerHTML = '';
+            } else {
+                document.getElementById('alert').innerHTML = '';
+                document.getElementById('alert').innerHTML = '<div class="alert alert-primary" role="alert">Going to ' + msg + '!</div>';
+            }
         });
 
     });
